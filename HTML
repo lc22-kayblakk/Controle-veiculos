@@ -1,0 +1,335 @@
+import React, { useState, useEffect } from ‘react’;
+import { Plus, Edit2, Trash2, Copy, Check, Wrench } from ‘lucide-react’;
+
+const STATUS_OPTIONS = [
+{ value: ‘diagnostico’, label: ‘Em Diagnóstico’, color: ‘bg-blue-500 text-white’ },
+{ value: ‘servico’, label: ‘Em Serviço’, color: ‘bg-orange-500 text-white’ },
+{ value: ‘peca’, label: ‘Aguardando Peça’, color: ‘bg-amber-500 text-white’ },
+{ value: ‘espera’, label: ‘Em Espera’, color: ‘bg-gray-500 text-white’ },
+{ value: ‘pronto’, label: ‘Pronto’, color: ‘bg-green-500 text-white’ }
+];
+
+export default function OficinaControl() {
+const [vehicles, setVehicles] = useState([]);
+const [showForm, setShowForm] = useState(false);
+const [editingId, setEditingId] = useState(null);
+const [copied, setCopied] = useState(false);
+const [formData, setFormData] = useState({
+modelo: ‘’,
+defeito: ‘’,
+status: ‘diagnostico’
+});
+
+useEffect(() => {
+const stored = localStorage.getItem(‘oficina_vehicles’);
+if (stored) {
+setVehicles(JSON.parse(stored));
+}
+}, []);
+
+useEffect(() => {
+localStorage.setItem(‘oficina_vehicles’, JSON.stringify(vehicles));
+}, [vehicles]);
+
+const handleSubmit = (e) => {
+e.preventDefault();
+if (editingId) {
+setVehicles(vehicles.map(v => v.id === editingId ? { …formData, id: editingId } : v));
+setEditingId(null);
+} else {
+setVehicles([…vehicles, { …formData, id: Date.now() }]);
+}
+resetForm();
+};
+
+const resetForm = () => {
+setFormData({
+modelo: ‘’,
+defeito: ‘’,
+status: ‘diagnostico’
+});
+setShowForm(false);
+setEditingId(null);
+};
+
+const handleEdit = (vehicle) => {
+setFormData(vehicle);
+setEditingId(vehicle.id);
+setShowForm(true);
+};
+
+const handleDelete = (id) => {
+if (confirm(‘Deseja realmente excluir este veículo?’)) {
+setVehicles(vehicles.filter(v => v.id !== id));
+}
+};
+
+const getStatusLabel = (status) => {
+return STATUS_OPTIONS.find(s => s.value === status)?.label || status;
+};
+
+const getStatusColor = (status) => {
+return STATUS_OPTIONS.find(s => s.value === status)?.color || ‘bg-gray-500 text-white’;
+};
+
+const copyToWhatsApp = () => {
+if (vehicles.length === 0) {
+alert(‘Nenhum veículo para copiar!’);
+return;
+}
+
+```
+const statusGroups = {};
+
+vehicles.forEach(v => {
+  const statusLabel = getStatusLabel(v.status);
+  if (!statusGroups[statusLabel]) {
+    statusGroups[statusLabel] = [];
+  }
+  statusGroups[statusLabel].push(v);
+});
+
+let text = '🚗 *VEÍCULOS NA OFICINA*\n';
+text += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
+text += `Total: ${vehicles.length} veículo(s)\n`;
+text += '━━━━━━━━━━━━━━━━━━━━\n\n';
+
+Object.entries(statusGroups).forEach(([status, veiculos]) => {
+  const emoji = {
+    'Em Diagnóstico': '🔍',
+    'Em Serviço': '🔧',
+    'Aguardando Peça': '📦',
+    'Em Espera': '⏳',
+    'Pronto': '✅'
+  }[status] || '•';
+
+  text += `${emoji} *${status.toUpperCase()}* (${veiculos.length})\n`;
+  veiculos.forEach((v, i) => {
+    text += `${i + 1}. ${v.modelo}\n`;
+    text += `   ${v.defeito}\n\n`;
+  });
+  text += '\n';
+});
+
+navigator.clipboard.writeText(text).then(() => {
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+});
+```
+
+};
+
+return (
+<div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+{/* Header com Logo */}
+<div className="bg-gradient-to-r from-orange-600 to-orange-500 shadow-2xl">
+<div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+<div className="flex items-center justify-between">
+<div className="flex items-center gap-4">
+{/* Área do Logo - Substitua o círculo por sua logo */}
+<div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+<Wrench className="w-8 h-8 text-orange-600" />
+</div>
+<div>
+<h1 className="text-2xl md:text-3xl font-bold text-white">
+OFICINA MECÂNICA
+</h1>
+<p className="text-orange-100 text-sm">Sistema de Controle de Veículos</p>
+</div>
+</div>
+<div className="hidden md:block">
+<div className="text-right">
+<div className="text-orange-100 text-sm">Total de Veículos</div>
+<div className="text-3xl font-bold text-white">{vehicles.length}</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+```
+  <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    {/* Botões de Ação */}
+    <div className="flex gap-3 mb-8 flex-wrap">
+      <button
+        onClick={() => setShowForm(true)}
+        className="flex-1 md:flex-none bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
+      >
+        <Plus className="w-6 h-6" />
+        NOVO VEÍCULO
+      </button>
+      <button
+        onClick={copyToWhatsApp}
+        disabled={vehicles.length === 0}
+        className={`flex-1 md:flex-none px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-lg ${
+          vehicles.length === 0
+            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            : copied
+            ? 'bg-green-600 text-white shadow-lg'
+            : 'bg-gray-800 hover:bg-gray-700 text-white border-2 border-orange-500 shadow-lg hover:shadow-xl'
+        }`}
+      >
+        {copied ? (
+          <>
+            <Check className="w-6 h-6" />
+            COPIADO!
+          </>
+        ) : (
+          <>
+            <Copy className="w-6 h-6" />
+            COPIAR P/ WHATSAPP
+          </>
+        )}
+      </button>
+    </div>
+
+    {/* Estatísticas por Status */}
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      {STATUS_OPTIONS.map(status => {
+        const count = vehicles.filter(v => v.status === status.value).length;
+        return (
+          <div key={status.value} className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl p-6 text-center hover:border-orange-500 transition-all">
+            <div className="text-4xl font-bold text-orange-500 mb-2">{count}</div>
+            <div className="text-sm text-gray-300 font-semibold">{status.label}</div>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Lista de Veículos */}
+    <div className="space-y-4">
+      {vehicles.length === 0 ? (
+        <div className="text-center py-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-dashed border-gray-700">
+          <div className="text-gray-500 mb-4">
+            <Wrench className="w-20 h-20 mx-auto mb-4 opacity-30" />
+          </div>
+          <p className="text-xl text-gray-400 font-semibold mb-2">Nenhum veículo cadastrado</p>
+          <p className="text-gray-500">Clique em "NOVO VEÍCULO" para começar</p>
+        </div>
+      ) : (
+        vehicles.map(vehicle => (
+          <div key={vehicle.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl p-6 hover:border-orange-500 transition-all shadow-lg">
+            <div className="flex flex-col md:flex-row justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <h3 className="text-2xl font-bold text-white">
+                    {vehicle.modelo}
+                  </h3>
+                  <span className={`${getStatusColor(vehicle.status)} px-4 py-2 rounded-lg text-sm font-bold shadow-md`}>
+                    {getStatusLabel(vehicle.status)}
+                  </span>
+                </div>
+                
+                <div className="bg-gray-900 bg-opacity-50 rounded-lg p-4 border border-gray-700">
+                  <p className="text-gray-300 leading-relaxed">
+                    <span className="font-bold text-orange-500">Defeito/Serviço:</span>
+                    <br />
+                    <span className="text-white">{vehicle.defeito}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex md:flex-col gap-3">
+                <button
+                  onClick={() => handleEdit(vehicle)}
+                  className="flex-1 md:flex-none bg-orange-600 hover:bg-orange-500 text-white p-4 rounded-xl transition-all shadow-md font-bold"
+                  title="Editar"
+                >
+                  <Edit2 className="w-6 h-6 mx-auto" />
+                </button>
+                <button
+                  onClick={() => handleDelete(vehicle.id)}
+                  className="flex-1 md:flex-none bg-red-600 hover:bg-red-500 text-white p-4 rounded-xl transition-all shadow-md font-bold"
+                  title="Excluir"
+                >
+                  <Trash2 className="w-6 h-6 mx-auto" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+
+  {/* Modal do Formulário */}
+  {showForm && (
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-orange-500 rounded-2xl shadow-2xl max-w-lg w-full">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-6 rounded-t-2xl">
+          <h2 className="text-3xl font-bold text-white">
+            {editingId ? '✏️ EDITAR VEÍCULO' : '➕ NOVO VEÍCULO'}
+          </h2>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <div>
+            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
+              Modelo do Veículo *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.modelo}
+              onChange={(e) => setFormData({...formData, modelo: e.target.value})}
+              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
+              placeholder="Ex: Fiat Uno 2015 - ABC-1234"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
+              Status *
+            </label>
+            <select
+              required
+              value={formData.status}
+              onChange={(e) => setFormData({...formData, status: e.target.value})}
+              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
+            >
+              {STATUS_OPTIONS.map(status => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
+              Defeito/Serviço *
+            </label>
+            <textarea
+              required
+              value={formData.defeito}
+              onChange={(e) => setFormData({...formData, defeito: e.target.value})}
+              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
+              rows="4"
+              placeholder="Descreva o problema ou serviço"
+            />
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-6 py-4 rounded-xl font-bold transition-all uppercase tracking-wide"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg uppercase tracking-wide"
+            >
+              {editingId ? 'Salvar' : 'Adicionar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+}
