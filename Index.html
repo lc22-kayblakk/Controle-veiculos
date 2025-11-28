@@ -1,335 +1,837 @@
-import React, { useState, useEffect } from ‘react’;
-import { Plus, Edit2, Trash2, Copy, Check, Wrench } from ‘lucide-react’;
+<!DOCTYPE html>
 
-const STATUS_OPTIONS = [
-{ value: ‘diagnostico’, label: ‘Em Diagnóstico’, color: ‘bg-blue-500 text-white’ },
-{ value: ‘servico’, label: ‘Em Serviço’, color: ‘bg-orange-500 text-white’ },
-{ value: ‘peca’, label: ‘Aguardando Peça’, color: ‘bg-amber-500 text-white’ },
-{ value: ‘espera’, label: ‘Em Espera’, color: ‘bg-gray-500 text-white’ },
-{ value: ‘pronto’, label: ‘Pronto’, color: ‘bg-green-500 text-white’ }
-];
-
-export default function OficinaControl() {
-const [vehicles, setVehicles] = useState([]);
-const [showForm, setShowForm] = useState(false);
-const [editingId, setEditingId] = useState(null);
-const [copied, setCopied] = useState(false);
-const [formData, setFormData] = useState({
-modelo: ‘’,
-defeito: ‘’,
-status: ‘diagnostico’
-});
-
-useEffect(() => {
-const stored = localStorage.getItem(‘oficina_vehicles’);
-if (stored) {
-setVehicles(JSON.parse(stored));
-}
-}, []);
-
-useEffect(() => {
-localStorage.setItem(‘oficina_vehicles’, JSON.stringify(vehicles));
-}, [vehicles]);
-
-const handleSubmit = (e) => {
-e.preventDefault();
-if (editingId) {
-setVehicles(vehicles.map(v => v.id === editingId ? { …formData, id: editingId } : v));
-setEditingId(null);
-} else {
-setVehicles([…vehicles, { …formData, id: Date.now() }]);
-}
-resetForm();
-};
-
-const resetForm = () => {
-setFormData({
-modelo: ‘’,
-defeito: ‘’,
-status: ‘diagnostico’
-});
-setShowForm(false);
-setEditingId(null);
-};
-
-const handleEdit = (vehicle) => {
-setFormData(vehicle);
-setEditingId(vehicle.id);
-setShowForm(true);
-};
-
-const handleDelete = (id) => {
-if (confirm(‘Deseja realmente excluir este veículo?’)) {
-setVehicles(vehicles.filter(v => v.id !== id));
-}
-};
-
-const getStatusLabel = (status) => {
-return STATUS_OPTIONS.find(s => s.value === status)?.label || status;
-};
-
-const getStatusColor = (status) => {
-return STATUS_OPTIONS.find(s => s.value === status)?.color || ‘bg-gray-500 text-white’;
-};
-
-const copyToWhatsApp = () => {
-if (vehicles.length === 0) {
-alert(‘Nenhum veículo para copiar!’);
-return;
-}
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Veículos - Oficina</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
 ```
-const statusGroups = {};
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        color: #ffffff;
+        min-height: 100vh;
+    }
 
-vehicles.forEach(v => {
-  const statusLabel = getStatusLabel(v.status);
-  if (!statusGroups[statusLabel]) {
-    statusGroups[statusLabel] = [];
-  }
-  statusGroups[statusLabel].push(v);
-});
+    .header {
+        background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+        box-shadow: 0 4px 20px rgba(255, 107, 0, 0.3);
+    }
 
-let text = '🚗 *VEÍCULOS NA OFICINA*\n';
-text += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
-text += `Total: ${vehicles.length} veículo(s)\n`;
-text += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    .header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
 
-Object.entries(statusGroups).forEach(([status, veiculos]) => {
-  const emoji = {
-    'Em Diagnóstico': '🔍',
-    'Em Serviço': '🔧',
-    'Aguardando Peça': '📦',
-    'Em Espera': '⏳',
-    'Pronto': '✅'
-  }[status] || '•';
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-  text += `${emoji} *${status.toUpperCase()}* (${veiculos.length})\n`;
-  veiculos.forEach((v, i) => {
-    text += `${i + 1}. ${v.modelo}\n`;
-    text += `   ${v.defeito}\n\n`;
-  });
-  text += '\n';
-});
+    .logo-container {
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        color: #ff6b00;
+    }
 
-navigator.clipboard.writeText(text).then(() => {
-  setCopied(true);
-  setTimeout(() => setCopied(false), 2000);
-});
+    .header-text h1 {
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 0.25rem;
+    }
+
+    .header-text p {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .header-right {
+        text-align: right;
+    }
+
+    .total-label {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .total-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .main-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1.125rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5);
+    }
+
+    .btn-secondary {
+        background: #2a2a2a;
+        color: white;
+        border: 2px solid #ff6b00;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #3a3a3a;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 0, 0.3);
+    }
+
+    .btn-secondary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-color: #555;
+    }
+
+    .btn-secondary.copied {
+        background: #10b981;
+        border-color: #10b981;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border: 2px solid #333;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        border-color: #ff6b00;
+        transform: translateY(-2px);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #ff6b00;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #999;
+        font-weight: 600;
+    }
+
+    .vehicles-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .vehicle-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border: 2px solid #333;
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .vehicle-card:hover {
+        border-color: #ff6b00;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 0, 0.2);
+    }
+
+    .vehicle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .vehicle-info {
+        flex: 1;
+    }
+
+    .vehicle-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .vehicle-modelo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .vehicle-status {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-diagnostico { background: #3b82f6; color: white; }
+    .status-servico { background: #ff6b00; color: white; }
+    .status-peca { background: #f59e0b; color: white; }
+    .status-espera { background: #6b7280; color: white; }
+    .status-pronto { background: #10b981; color: white; }
+
+    .vehicle-defeito-box {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .vehicle-defeito-label {
+        font-weight: bold;
+        color: #ff6b00;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .vehicle-defeito {
+        color: white;
+        line-height: 1.6;
+    }
+
+    .vehicle-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn-edit, .btn-delete {
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-edit {
+        background: #ff6b00;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #ff8c00;
+        transform: scale(1.05);
+    }
+
+    .btn-delete {
+        background: #dc2626;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        transform: scale(1.05);
+    }
+
+    .empty-state {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border: 2px dashed #333;
+        border-radius: 16px;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-state svg {
+        opacity: 0.3;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        color: #999;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-subtitle {
+        color: #666;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border: 2px solid #ff6b00;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+        padding: 1.5rem;
+        border-radius: 14px 14px 0 0;
+    }
+
+    .modal-header h2 {
+        font-size: 1.875rem;
+        color: white;
+        font-weight: bold;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: bold;
+        color: #ff6b00;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 1rem;
+        background: #0a0a0a;
+        border: 2px solid #333;
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: #ff6b00;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-cancel, .btn-submit {
+        flex: 1;
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-cancel {
+        background: #3a3a3a;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #4a4a4a;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5);
+    }
+
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        .header-left {
+            flex-direction: column;
+        }
+        .header-right {
+            text-align: center;
+        }
+        .vehicle-header {
+            flex-direction: column;
+        }
+        .vehicle-actions {
+            flex-direction: row;
+            width: 100%;
+        }
+        .btn-edit, .btn-delete {
+            flex: 1;
+        }
+        .action-buttons {
+            flex-direction: column;
+        }
+        .btn-primary, .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>
 ```
 
-};
-
-return (
-<div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-{/* Header com Logo */}
-<div className="bg-gradient-to-r from-orange-600 to-orange-500 shadow-2xl">
-<div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-<div className="flex items-center justify-between">
-<div className="flex items-center gap-4">
-{/* Área do Logo - Substitua o círculo por sua logo */}
-<div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
-<Wrench className="w-8 h-8 text-orange-600" />
-</div>
-<div>
-<h1 className="text-2xl md:text-3xl font-bold text-white">
-OFICINA MECÂNICA
-</h1>
-<p className="text-orange-100 text-sm">Sistema de Controle de Veículos</p>
-</div>
-</div>
-<div className="hidden md:block">
-<div className="text-right">
-<div className="text-orange-100 text-sm">Total de Veículos</div>
-<div className="text-3xl font-bold text-white">{vehicles.length}</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-```
-  <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-    {/* Botões de Ação */}
-    <div className="flex gap-3 mb-8 flex-wrap">
-      <button
-        onClick={() => setShowForm(true)}
-        className="flex-1 md:flex-none bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
-      >
-        <Plus className="w-6 h-6" />
-        NOVO VEÍCULO
-      </button>
-      <button
-        onClick={copyToWhatsApp}
-        disabled={vehicles.length === 0}
-        className={`flex-1 md:flex-none px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-lg ${
-          vehicles.length === 0
-            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            : copied
-            ? 'bg-green-600 text-white shadow-lg'
-            : 'bg-gray-800 hover:bg-gray-700 text-white border-2 border-orange-500 shadow-lg hover:shadow-xl'
-        }`}
-      >
-        {copied ? (
-          <>
-            <Check className="w-6 h-6" />
-            COPIADO!
-          </>
-        ) : (
-          <>
-            <Copy className="w-6 h-6" />
-            COPIAR P/ WHATSAPP
-          </>
-        )}
-      </button>
-    </div>
-
-    {/* Estatísticas por Status */}
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-      {STATUS_OPTIONS.map(status => {
-        const count = vehicles.filter(v => v.status === status.value).length;
-        return (
-          <div key={status.value} className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl p-6 text-center hover:border-orange-500 transition-all">
-            <div className="text-4xl font-bold text-orange-500 mb-2">{count}</div>
-            <div className="text-sm text-gray-300 font-semibold">{status.label}</div>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* Lista de Veículos */}
-    <div className="space-y-4">
-      {vehicles.length === 0 ? (
-        <div className="text-center py-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-dashed border-gray-700">
-          <div className="text-gray-500 mb-4">
-            <Wrench className="w-20 h-20 mx-auto mb-4 opacity-30" />
-          </div>
-          <p className="text-xl text-gray-400 font-semibold mb-2">Nenhum veículo cadastrado</p>
-          <p className="text-gray-500">Clique em "NOVO VEÍCULO" para começar</p>
-        </div>
-      ) : (
-        vehicles.map(vehicle => (
-          <div key={vehicle.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl p-6 hover:border-orange-500 transition-all shadow-lg">
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold text-white">
-                    {vehicle.modelo}
-                  </h3>
-                  <span className={`${getStatusColor(vehicle.status)} px-4 py-2 rounded-lg text-sm font-bold shadow-md`}>
-                    {getStatusLabel(vehicle.status)}
-                  </span>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo-container">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
                 </div>
-                
-                <div className="bg-gray-900 bg-opacity-50 rounded-lg p-4 border border-gray-700">
-                  <p className="text-gray-300 leading-relaxed">
-                    <span className="font-bold text-orange-500">Defeito/Serviço:</span>
-                    <br />
-                    <span className="text-white">{vehicle.defeito}</span>
-                  </p>
+                <div class="header-text">
+                    <h1>OFICINA MECÂNICA</h1>
+                    <p>Sistema de Controle de Veículos</p>
                 </div>
-              </div>
-
-              <div className="flex md:flex-col gap-3">
-                <button
-                  onClick={() => handleEdit(vehicle)}
-                  className="flex-1 md:flex-none bg-orange-600 hover:bg-orange-500 text-white p-4 rounded-xl transition-all shadow-md font-bold"
-                  title="Editar"
-                >
-                  <Edit2 className="w-6 h-6 mx-auto" />
-                </button>
-                <button
-                  onClick={() => handleDelete(vehicle.id)}
-                  className="flex-1 md:flex-none bg-red-600 hover:bg-red-500 text-white p-4 rounded-xl transition-all shadow-md font-bold"
-                  title="Excluir"
-                >
-                  <Trash2 className="w-6 h-6 mx-auto" />
-                </button>
-              </div>
             </div>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-
-  {/* Modal do Formulário */}
-  {showForm && (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-orange-500 rounded-2xl shadow-2xl max-w-lg w-full">
-        <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-6 rounded-t-2xl">
-          <h2 className="text-3xl font-bold text-white">
-            {editingId ? '✏️ EDITAR VEÍCULO' : '➕ NOVO VEÍCULO'}
-          </h2>
+            <div class="header-right">
+                <div class="total-label">Total de Veículos</div>
+                <div class="total-count" id="totalCount">0</div>
+            </div>
         </div>
-        
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
-              Modelo do Veículo *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.modelo}
-              onChange={(e) => setFormData({...formData, modelo: e.target.value})}
-              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
-              placeholder="Ex: Fiat Uno 2015 - ABC-1234"
-            />
-          </div>
+    </header>
 
-          <div>
-            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
-              Status *
-            </label>
-            <select
-              required
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
-              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
-            >
-              {STATUS_OPTIONS.map(status => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-orange-500 mb-3 uppercase tracking-wide">
-              Defeito/Serviço *
-            </label>
-            <textarea
-              required
-              value={formData.defeito}
-              onChange={(e) => setFormData({...formData, defeito: e.target.value})}
-              className="w-full px-4 py-4 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold"
-              rows="4"
-              placeholder="Descreva o problema ou serviço"
-            />
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <button
-              type="button"
-              onClick={resetForm}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-6 py-4 rounded-xl font-bold transition-all uppercase tracking-wide"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg uppercase tracking-wide"
-            >
-              {editingId ? 'Salvar' : 'Adicionar'}
-            </button>
-          </div>
-        </form>
-      </div>
+```
+<main class="main-content">
+    <div class="action-buttons">
+        <button class="btn-primary" id="btnNovoVeiculo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            NOVO VEÍCULO
+        </button>
+        <button class="btn-secondary" id="btnCopiar" disabled>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span id="btnCopiarTexto">COPIAR P/ WHATSAPP</span>
+        </button>
     </div>
-  )}
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Em Diagnóstico</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Em Serviço</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Aguardando Peça</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Em Espera</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Pronto</div>
+        </div>
+    </div>
+
+    <div id="vehiclesList" class="vehicles-list">
+        <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+            <p class="empty-title">Nenhum veículo cadastrado</p>
+            <p class="empty-subtitle">Clique em "NOVO VEÍCULO" para começar</p>
+        </div>
+    </div>
+</main>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">➕ NOVO VEÍCULO</h2>
+        </div>
+        <form id="vehicleForm" class="modal-body">
+            <div class="form-group">
+                <label for="modelo">Modelo do Veículo *</label>
+                <input type="text" id="modelo" required placeholder="Ex: Fiat Uno 2015 - ABC-1234">
+            </div>
+            <div class="form-group">
+                <label for="status">Status *</label>
+                <select id="status" required>
+                    <option value="diagnostico">Em Diagnóstico</option>
+                    <option value="servico">Em Serviço</option>
+                    <option value="peca">Aguardando Peça</option>
+                    <option value="espera">Em Espera</option>
+                    <option value="pronto">Pronto</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="defeito">Defeito/Serviço *</label>
+                <textarea id="defeito" required rows="4" placeholder="Descreva o problema ou serviço"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" id="btnCancelar">CANCELAR</button>
+                <button type="submit" class="btn-submit" id="btnSubmit">ADICIONAR</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<script>
+    const STATUS_CONFIG = {
+        diagnostico: { label: 'Em Diagnóstico', emoji: '🔍' },
+        servico: { label: 'Em Serviço', emoji: '🔧' },
+        peca: { label: 'Aguardando Peça', emoji: '📦' },
+        espera: { label: 'Em Espera', emoji: '⏳' },
+        pronto: { label: 'Pronto', emoji: '✅' }
+    };
+
+    let vehicles = [];
+    let editingId = null;
+
+    const modal = document.getElementById('modal');
+    const vehicleForm = document.getElementById('vehicleForm');
+    const vehiclesList = document.getElementById('vehiclesList');
+    const btnNovoVeiculo = document.getElementById('btnNovoVeiculo');
+    const btnCancelar = document.getElementById('btnCancelar');
+    const btnCopiar = document.getElementById('btnCopiar');
+    const btnCopiarTexto = document.getElementById('btnCopiarTexto');
+    const modalTitle = document.getElementById('modalTitle');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const totalCount = document.getElementById('totalCount');
+    const inputModelo = document.getElementById('modelo');
+    const inputStatus = document.getElementById('status');
+    const inputDefeito = document.getElementById('defeito');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadVehicles();
+        renderVehicles();
+        updateStats();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        btnNovoVeiculo.addEventListener('click', openModalForNew);
+        btnCancelar.addEventListener('click', closeModal);
+        btnCopiar.addEventListener('click', copyToWhatsApp);
+        vehicleForm.addEventListener('submit', handleSubmit);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    function loadVehicles() {
+        const stored = localStorage.getItem('oficina_vehicles');
+        if (stored) {
+            vehicles = JSON.parse(stored);
+        }
+    }
+
+    function saveVehicles() {
+        localStorage.setItem('oficina_vehicles', JSON.stringify(vehicles));
+    }
+
+    function openModalForNew() {
+        editingId = null;
+        modalTitle.textContent = '➕ NOVO VEÍCULO';
+        btnSubmit.textContent = 'ADICIONAR';
+        inputModelo.value = '';
+        inputStatus.value = 'diagnostico';
+        inputDefeito.value = '';
+        modal.classList.add('active');
+        inputModelo.focus();
+    }
+
+    function openModalForEdit(id) {
+        const vehicle = vehicles.find(v => v.id === id);
+        if (!vehicle) return;
+
+        editingId = id;
+        modalTitle.textContent = '✏️ EDITAR VEÍCULO';
+        btnSubmit.textContent = 'SALVAR';
+        inputModelo.value = vehicle.modelo;
+        inputStatus.value = vehicle.status;
+        inputDefeito.value = vehicle.defeito;
+        modal.classList.add('active');
+        inputModelo.focus();
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        editingId = null;
+    }
+
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        const vehicleData = {
+            modelo: inputModelo.value.trim(),
+            status: inputStatus.value,
+            defeito: inputDefeito.value.trim()
+        };
+
+        if (editingId) {
+            vehicles = vehicles.map(v => 
+                v.id === editingId ? { ...vehicleData, id: editingId } : v
+            );
+        } else {
+            vehicles.push({
+                ...vehicleData,
+                id: Date.now()
+            });
+        }
+
+        saveVehicles();
+        renderVehicles();
+        updateStats();
+        closeModal();
+    }
+
+    function renderVehicles() {
+        if (vehicles.length === 0) {
+            vehiclesList.innerHTML = `
+                <div class="empty-state">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                    <p class="empty-title">Nenhum veículo cadastrado</p>
+                    <p class="empty-subtitle">Clique em "NOVO VEÍCULO" para começar</p>
+                </div>
+            `;
+            btnCopiar.disabled = true;
+            return;
+        }
+
+        btnCopiar.disabled = false;
+
+        vehiclesList.innerHTML = vehicles.map(vehicle => `
+            <div class="vehicle-card">
+                <div class="vehicle-header">
+                    <div class="vehicle-info">
+                        <div class="vehicle-title-row">
+                            <h3 class="vehicle-modelo">${escapeHtml(vehicle.modelo)}</h3>
+                            <span class="vehicle-status status-${vehicle.status}">
+                                ${STATUS_CONFIG[vehicle.status].label}
+                            </span>
+                        </div>
+                        <div class="vehicle-defeito-box">
+                            <span class="vehicle-defeito-label">Defeito/Serviço:</span>
+                            <p class="vehicle-defeito">${escapeHtml(vehicle.defeito)}</p>
+                        </div>
+                    </div>
+                    <div class="vehicle-actions">
+                        <button class="btn-edit" onclick="openModalForEdit(${vehicle.id})">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-delete" onclick="deleteVehicle(${vehicle.id})">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateStats() {
+        const stats = {
+            diagnostico: 0,
+            servico: 0,
+            peca: 0,
+            espera: 0,
+            pronto: 0
+        };
+
+        vehicles.forEach(v => {
+            stats[v.status]++;
+        });
+
+        const statCards = document.querySelectorAll('.stat-card');
+        const statusKeys = Object.keys(STATUS_CONFIG);
+        
+        statCards.forEach((card, index) => {
+            const statusKey = statusKeys[index];
+            const number = card.querySelector('.stat-number');
+            number.textContent = stats[statusKey];
+        });
+
+        totalCount.textContent = vehicles.length;
+    }
+
+    function deleteVehicle(id) {
+        if (!confirm('Deseja realmente excluir este veículo?')) return;
+
+        vehicles = vehicles.filter(v => v.id !== id);
+        saveVehicles();
+        renderVehicles();
+        updateStats();
+    }
+
+    function copyToWhatsApp() {
+        if (vehicles.length === 0) {
+            alert('Nenhum veículo para copiar!');
+            return;
+        }
+
+        const grouped = {};
+        vehicles.forEach(v => {
+            if (!grouped[v.status]) {
+                grouped[v.status] = [];
+            }
+            grouped[v.status].push(v);
+        });
+
+        let text = '🚗 *VEÍCULOS NA OFICINA*\n';
+        text += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
+        text += `Total: ${vehicles.length} veículo(s)\n`;
+        text += '━━━━━━━━━━━━━━━━━━━━\n\n';
+
+        Object.keys(STATUS_CONFIG).forEach(statusKey => {
+            if (grouped[statusKey] && grouped[statusKey].length > 0) {
+                const config = STATUS_CONFIG[statusKey];
+                text += `${config.emoji} *${config.label.toUpperCase()}* (${grouped[statusKey].length})\n`;
+                
+                grouped[statusKey].forEach((v, i) => {
+                    text += `${i + 1}. ${v.modelo}\n`;
+                    text += `   ${v.defeito}\n\n`;
+                });
+                
+                text += '\n';
+            }
+        });
+
+        navigator.clipboard.writeText(text).then(() => {
+            btnCopiarTexto.textContent = 'COPIADO!';
+            btnCopiar.classList.add('copied');
+            
+            setTimeout(() => {
+                btnCopiarTexto.textContent = 'COPIAR P/ WHATSAPP';
+                btnCopiar.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            alert('Erro ao copiar. Tente novamente.');
+            console.error(err);
+        });
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    window.openModalForEdit = openModalForEdit;
+    window.deleteVehicle = deleteVehicle;
+</script>
 ```
 
-);
-}
+</body>
+</html>
