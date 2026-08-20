@@ -587,14 +587,23 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
+        /*
+         * A lista usa exatamente duas colunas.
+         * column-fill:auto faz a leitura natural:
+         * termina o espaço disponível da coluna esquerda
+         * e somente então continua na coluna direita.
+         */
         .print-area {
             width: 100%;
+            height: 283mm;
             padding: 0;
             margin: 0;
-            column-gap: 8mm;
-            column-fill: balance;
-            font-size: 8.2pt;
-            line-height: 1.15;
+            column-count: 2;
+            column-gap: 9mm;
+            column-fill: auto;
+            font-size: 14px;
+            line-height: 1.18;
+            overflow: visible;
         }
 
         .print-area.cols-2,
@@ -603,26 +612,26 @@
         }
 
         .print-title {
-            font-size: 13pt;
+            font-size: 18px;
             line-height: 1.1;
             font-weight: bold;
-            margin: 0 0 1mm 0;
+            margin: 0 0 2mm 0;
             column-span: all;
         }
 
         .print-subtitle {
-            font-size: 7.5pt;
+            font-size: 11px;
             color: #333;
             margin: 0 0 3mm 0;
             column-span: all;
         }
 
         .print-group-title {
-            font-size: 8.5pt;
+            font-size: 14px;
             line-height: 1.1;
             font-weight: bold;
             text-transform: uppercase;
-            margin: 2.5mm 0 1mm 0;
+            margin: 3mm 0 1.5mm 0;
             border-bottom: 1px solid #000;
             padding-bottom: 1mm;
             break-after: avoid;
@@ -632,27 +641,27 @@
         .print-item {
             break-inside: avoid;
             page-break-inside: avoid;
-            margin-bottom: 1.8mm;
-            padding-bottom: 1.3mm;
+            margin-bottom: 2.5mm;
+            padding-bottom: 1.8mm;
             border-bottom: 0.5px solid #bbb;
         }
 
         .pi-top {
-            font-size: 8.5pt;
-            line-height: 1.1;
+            font-size: 14px;
+            line-height: 1.12;
             font-weight: bold;
-            margin-bottom: 0.5mm;
+            margin-bottom: 0.7mm;
         }
 
         .pi-meta,
         .pi-defeito {
-            font-size: 7.2pt;
-            line-height: 1.15;
+            font-size: 13px;
+            line-height: 1.18;
         }
 
         .pi-meta {
             color: #333;
-            margin-bottom: 0.5mm;
+            margin-bottom: 0.7mm;
         }
 
         .pi-defeito {
@@ -1174,12 +1183,30 @@
 
         printArea.innerHTML = html;
         printArea.classList.remove('cols-2', 'cols-3');
-        printArea.classList.add('cols-' + colunas);
+        printArea.classList.add('cols-2');
 
         printModal.classList.remove('active');
         document.body.classList.add('printing');
 
-        setTimeout(() => window.print(), 100);
+        /*
+         * Começa com fonte de 14px, como solicitado.
+         * Se a lista for grande demais para duas colunas A4,
+         * reduz somente o necessário para evitar uma terceira coluna/página.
+         */
+        setTimeout(() => {
+            let tamanho = 14;
+            printArea.style.fontSize = tamanho + 'px';
+
+            // Aguarda o navegador calcular as colunas.
+            requestAnimationFrame(() => {
+                while (tamanho > 9 && printArea.scrollWidth > printArea.clientWidth + 2) {
+                    tamanho -= 0.5;
+                    printArea.style.fontSize = tamanho + 'px';
+                }
+
+                window.print();
+            });
+        }, 150);
     }
 
     function escapeHtml(text) {
