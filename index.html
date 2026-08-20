@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Veículos - Oficina</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Veículos - Oficina</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-```
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
@@ -94,7 +92,7 @@
         flex-wrap: wrap;
     }
 
-    .btn-primary, .btn-secondary {
+    .btn-primary, .btn-secondary, .btn-tertiary {
         padding: 1rem 2rem;
         border: none;
         border-radius: 12px;
@@ -121,7 +119,7 @@
         box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5);
     }
 
-    .btn-secondary {
+    .btn-secondary, .btn-tertiary {
         background: #2a2a2a;
         color: white;
         border: 2px solid #ff6b00;
@@ -130,13 +128,13 @@
         min-width: 200px;
     }
 
-    .btn-secondary:hover:not(:disabled) {
+    .btn-secondary:hover:not(:disabled), .btn-tertiary:hover:not(:disabled) {
         background: #3a3a3a;
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(255, 107, 0, 0.3);
     }
 
-    .btn-secondary:disabled {
+    .btn-secondary:disabled, .btn-tertiary:disabled {
         opacity: 0.5;
         cursor: not-allowed;
         border-color: #555;
@@ -149,7 +147,7 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
@@ -158,7 +156,7 @@
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         border: 2px solid #333;
         border-radius: 16px;
-        padding: 1.5rem;
+        padding: 1.25rem 1rem;
         text-align: center;
         transition: all 0.3s ease;
     }
@@ -169,14 +167,14 @@
     }
 
     .stat-number {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
         font-weight: bold;
         color: #ff6b00;
         margin-bottom: 0.5rem;
     }
 
     .stat-label {
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         color: #999;
         font-weight: 600;
     }
@@ -211,6 +209,7 @@
 
     .vehicle-info {
         flex: 1;
+        min-width: 0;
     }
 
     .vehicle-title-row {
@@ -218,7 +217,19 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 0.75rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .vehicle-placa {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 1rem;
+        background: #0a0a0a;
+        border: 2px solid #ff6b00;
+        color: #ff8c00;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        letter-spacing: 1px;
     }
 
     .vehicle-modelo {
@@ -233,13 +244,30 @@
         font-size: 0.875rem;
         font-weight: bold;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        white-space: nowrap;
     }
 
     .status-diagnostico { background: #3b82f6; color: white; }
     .status-servico { background: #ff6b00; color: white; }
     .status-peca { background: #f59e0b; color: white; }
     .status-espera { background: #6b7280; color: white; }
+    .status-teste { background: #8b5cf6; color: white; }
+    .status-terceiros { background: #14b8a6; color: white; }
+    .status-standby { background: #ec4899; color: white; }
     .status-pronto { background: #10b981; color: white; }
+
+    .vehicle-mecanico-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #ccc;
+        font-size: 0.9rem;
+    }
+
+    .vehicle-mecanico-row strong {
+        color: #ff8c00;
+    }
 
     .vehicle-defeito-box {
         background: rgba(0, 0, 0, 0.3);
@@ -343,6 +371,12 @@
         width: 100%;
         max-width: 600px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-content.modal-small {
+        max-width: 420px;
     }
 
     .modal-header {
@@ -361,6 +395,15 @@
         padding: 2rem;
     }
 
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
     .form-group {
         margin-bottom: 1.5rem;
     }
@@ -373,6 +416,17 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 0.75rem;
+    }
+
+    .form-hint {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #10b981;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: normal;
+        min-height: 1.1em;
     }
 
     .form-group input, .form-group select, .form-group textarea {
@@ -391,6 +445,12 @@
         outline: none;
         border-color: #ff6b00;
         box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .form-group input#placa {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-family: 'Courier New', monospace;
     }
 
     .form-group textarea {
@@ -437,6 +497,35 @@
         box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5);
     }
 
+    .print-columns-choice {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .print-col-btn {
+        flex: 1;
+        padding: 1.5rem 1rem;
+        background: #0a0a0a;
+        border: 2px solid #333;
+        border-radius: 12px;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .print-col-btn:hover {
+        border-color: #ff6b00;
+        background: #1a1a1a;
+        transform: translateY(-2px);
+    }
+
+    /* Área usada somente na impressão */
+    .print-area {
+        display: none;
+    }
+
     @media (max-width: 768px) {
         .header-content {
             flex-direction: column;
@@ -461,13 +550,79 @@
         .action-buttons {
             flex-direction: column;
         }
-        .btn-primary, .btn-secondary {
+        .btn-primary, .btn-secondary, .btn-tertiary {
             width: 100%;
+        }
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+
+    /* ===================== IMPRESSÃO ===================== */
+    @media print {
+        body.printing > *:not(.print-area) {
+            display: none !important;
+        }
+        body.printing .print-area {
+            display: block !important;
+        }
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        .print-area {
+            padding: 0;
+            column-gap: 22px;
+        }
+        .print-area.cols-2 { column-count: 2; }
+        .print-area.cols-3 { column-count: 3; }
+        .print-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+            column-span: all;
+        }
+        .print-subtitle {
+            font-size: 11px;
+            color: #444;
+            margin-bottom: 12px;
+            column-span: all;
+        }
+        .print-group-title {
+            font-size: 12.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 10px 0 4px 0;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 2px;
+            break-after: avoid;
+        }
+        .print-item {
+            break-inside: avoid;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dotted #999;
+            font-size: 11.5px;
+            line-height: 1.35;
+            color: #000;
+        }
+        .print-item .pi-top {
+            font-weight: bold;
+            font-size: 12.5px;
+        }
+        .print-item .pi-meta {
+            color: #333;
+            font-size: 11px;
+        }
+        .print-item .pi-defeito {
+            margin-top: 2px;
+        }
+        @page {
+            margin: 12mm;
         }
     }
 </style>
-```
-
 </head>
 <body>
     <header class="header">
@@ -490,138 +645,239 @@
         </div>
     </header>
 
-```
-<main class="main-content">
-    <div class="action-buttons">
-        <button class="btn-primary" id="btnNovoVeiculo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            NOVO VEÍCULO
-        </button>
-        <button class="btn-secondary" id="btnCopiar" disabled>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span id="btnCopiarTexto">COPIAR P/ WHATSAPP</span>
-        </button>
+    <main class="main-content">
+        <div class="action-buttons">
+            <button class="btn-primary" id="btnNovoVeiculo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                NOVO VEÍCULO
+            </button>
+            <button class="btn-secondary" id="btnCopiar" disabled>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="btnCopiarTexto">COPIAR P/ WHATSAPP</span>
+            </button>
+            <button class="btn-tertiary" id="btnImprimir" disabled>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                IMPRIMIR LISTA
+            </button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div id="vehiclesList" class="vehicles-list">
+            <div class="empty-state">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+                <p class="empty-title">Nenhum veículo cadastrado</p>
+                <p class="empty-subtitle">Clique em "NOVO VEÍCULO" para começar</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de cadastro/edição -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">➕ NOVO VEÍCULO</h2>
+            </div>
+            <form id="vehicleForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="placa">Placa *</label>
+                        <input type="text" id="placa" required maxlength="8" placeholder="ABC1D23 ou ABC-1234">
+                        <span class="form-hint" id="placaHint"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo do Veículo *</label>
+                    <input type="text" id="modelo" required list="modelosConhecidos" placeholder="Ex: Fiat Uno 2015">
+                    <datalist id="modelosConhecidos"></datalist>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mecanico">Mecânico Responsável *</label>
+                        <select id="mecanico" required>
+                            <option value="">Selecione...</option>
+                            <option value="Antony">Antony</option>
+                            <option value="Douglas">Douglas</option>
+                            <option value="Gustavo">Gustavo</option>
+                            <option value="Ricardo">Ricardo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" required>
+                            <option value="diagnostico">🔍 Em Diagnóstico</option>
+                            <option value="servico">🔧 Em Serviço</option>
+                            <option value="peca">📦 Aguardando Peça</option>
+                            <option value="espera">⏳ Em Espera</option>
+                            <option value="teste">🧪 Em Teste</option>
+                            <option value="terceiros">🤝 Terceiros</option>
+                            <option value="standby">⏸️ Stand-by</option>
+                            <option value="pronto">✅ Pronto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="defeito">Defeito/Serviço *</label>
+                    <textarea id="defeito" required rows="4" placeholder="Descreva o problema ou serviço"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="btnCancelar">CANCELAR</button>
+                    <button type="submit" class="btn-submit" id="btnSubmit">ADICIONAR</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Em Diagnóstico</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Em Serviço</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Aguardando Peça</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Em Espera</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Pronto</div>
+    <!-- Modal de escolha de colunas para impressão -->
+    <div class="modal" id="printModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>🖨️ Imprimir Lista</h2>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1.25rem; color: #ccc;">Quantas colunas na folha?</p>
+                <div class="print-columns-choice">
+                    <button class="print-col-btn" id="btnPrint2">2 Colunas</button>
+                    <button class="print-col-btn" id="btnPrint3">3 Colunas</button>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="btnCancelarPrint">CANCELAR</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="vehiclesList" class="vehicles-list">
-        <div class="empty-state">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-            </svg>
-            <p class="empty-title">Nenhum veículo cadastrado</p>
-            <p class="empty-subtitle">Clique em "NOVO VEÍCULO" para começar</p>
-        </div>
-    </div>
-</main>
-
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">➕ NOVO VEÍCULO</h2>
-        </div>
-        <form id="vehicleForm" class="modal-body">
-            <div class="form-group">
-                <label for="modelo">Modelo do Veículo *</label>
-                <input type="text" id="modelo" required placeholder="Ex: Fiat Uno 2015 - ABC-1234">
-            </div>
-            <div class="form-group">
-                <label for="status">Status *</label>
-                <select id="status" required>
-                    <option value="diagnostico">Em Diagnóstico</option>
-                    <option value="servico">Em Serviço</option>
-                    <option value="peca">Aguardando Peça</option>
-                    <option value="espera">Em Espera</option>
-                    <option value="pronto">Pronto</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="defeito">Defeito/Serviço *</label>
-                <textarea id="defeito" required rows="4" placeholder="Descreva o problema ou serviço"></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button type="button" class="btn-cancel" id="btnCancelar">CANCELAR</button>
-                <button type="submit" class="btn-submit" id="btnSubmit">ADICIONAR</button>
-            </div>
-        </form>
-    </div>
-</div>
+    <!-- Conteúdo gerado apenas para impressão -->
+    <div class="print-area" id="printArea"></div>
 
 <script>
     const STATUS_CONFIG = {
         diagnostico: { label: 'Em Diagnóstico', emoji: '🔍' },
-        servico: { label: 'Em Serviço', emoji: '🔧' },
-        peca: { label: 'Aguardando Peça', emoji: '📦' },
-        espera: { label: 'Em Espera', emoji: '⏳' },
-        pronto: { label: 'Pronto', emoji: '✅' }
+        servico:     { label: 'Em Serviço', emoji: '🔧' },
+        peca:        { label: 'Aguardando Peça', emoji: '📦' },
+        espera:      { label: 'Em Espera', emoji: '⏳' },
+        teste:       { label: 'Em Teste', emoji: '🧪' },
+        terceiros:   { label: 'Terceiros', emoji: '🤝' },
+        standby:     { label: 'Stand-by', emoji: '⏸️' },
+        pronto:      { label: 'Pronto', emoji: '✅' }
     };
 
+    const MECANICOS = ['Antony', 'Douglas', 'Gustavo', 'Ricardo'];
+
     let vehicles = [];
+    let placaHistorico = {}; // { PLACA: { modelo, mecanico } } - lembrado entre cadastros
     let editingId = null;
 
     const modal = document.getElementById('modal');
+    const printModal = document.getElementById('printModal');
     const vehicleForm = document.getElementById('vehicleForm');
     const vehiclesList = document.getElementById('vehiclesList');
     const btnNovoVeiculo = document.getElementById('btnNovoVeiculo');
     const btnCancelar = document.getElementById('btnCancelar');
     const btnCopiar = document.getElementById('btnCopiar');
     const btnCopiarTexto = document.getElementById('btnCopiarTexto');
+    const btnImprimir = document.getElementById('btnImprimir');
+    const btnCancelarPrint = document.getElementById('btnCancelarPrint');
+    const btnPrint2 = document.getElementById('btnPrint2');
+    const btnPrint3 = document.getElementById('btnPrint3');
     const modalTitle = document.getElementById('modalTitle');
     const btnSubmit = document.getElementById('btnSubmit');
     const totalCount = document.getElementById('totalCount');
+    const statsGrid = document.getElementById('statsGrid');
+    const inputPlaca = document.getElementById('placa');
+    const placaHint = document.getElementById('placaHint');
     const inputModelo = document.getElementById('modelo');
+    const inputMecanico = document.getElementById('mecanico');
     const inputStatus = document.getElementById('status');
     const inputDefeito = document.getElementById('defeito');
+    const modelosConhecidos = document.getElementById('modelosConhecidos');
+    const printArea = document.getElementById('printArea');
 
     document.addEventListener('DOMContentLoaded', () => {
+        buildStatsGrid();
         loadVehicles();
+        loadHistorico();
         renderVehicles();
         updateStats();
+        updateModelosDatalist();
         setupEventListeners();
     });
+
+    function buildStatsGrid() {
+        statsGrid.innerHTML = Object.keys(STATUS_CONFIG).map(key => `
+            <div class="stat-card" data-status="${key}">
+                <div class="stat-number">0</div>
+                <div class="stat-label">${STATUS_CONFIG[key].emoji} ${STATUS_CONFIG[key].label}</div>
+            </div>
+        `).join('');
+    }
 
     function setupEventListeners() {
         btnNovoVeiculo.addEventListener('click', openModalForNew);
         btnCancelar.addEventListener('click', closeModal);
         btnCopiar.addEventListener('click', copyToWhatsApp);
+        btnImprimir.addEventListener('click', () => printModal.classList.add('active'));
+        btnCancelarPrint.addEventListener('click', () => printModal.classList.remove('active'));
+        btnPrint2.addEventListener('click', () => imprimirLista(2));
+        btnPrint3.addEventListener('click', () => imprimirLista(3));
         vehicleForm.addEventListener('submit', handleSubmit);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        printModal.addEventListener('click', (e) => { if (e.target === printModal) printModal.classList.remove('active'); });
+
+        // Ao sair do campo placa, tenta preencher modelo/mecânico com base no histórico
+        inputPlaca.addEventListener('input', () => {
+            inputPlaca.value = formatPlaca(inputPlaca.value);
         });
+        inputPlaca.addEventListener('blur', tentarAutoPreencherPelaPlaca);
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('printing');
+        });
+    }
+
+    function formatPlaca(value) {
+        return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+    }
+
+    function tentarAutoPreencherPelaPlaca() {
+        const placa = inputPlaca.value;
+        if (!placa || placa.length < 6) {
+            placaHint.textContent = '';
+            return;
+        }
+        const dados = placaHistorico[placa];
+        if (dados) {
+            if (!inputModelo.value) inputModelo.value = dados.modelo;
+            if (!inputMecanico.value) inputMecanico.value = dados.mecanico;
+            placaHint.textContent = '🔁 Modelo e mecânico preenchidos automaticamente (placa já conhecida)';
+        } else {
+            placaHint.textContent = '';
+        }
     }
 
     function loadVehicles() {
         const stored = localStorage.getItem('oficina_vehicles');
         if (stored) {
-            vehicles = JSON.parse(stored);
+            vehicles = JSON.parse(stored).map(v => ({
+                id: v.id,
+                placa: v.placa || '',
+                modelo: v.modelo || '',
+                mecanico: v.mecanico || '',
+                status: STATUS_CONFIG[v.status] ? v.status : 'diagnostico',
+                defeito: v.defeito || ''
+            }));
         }
     }
 
@@ -629,15 +885,32 @@
         localStorage.setItem('oficina_vehicles', JSON.stringify(vehicles));
     }
 
+    function loadHistorico() {
+        const stored = localStorage.getItem('oficina_placas_historico');
+        placaHistorico = stored ? JSON.parse(stored) : {};
+    }
+
+    function saveHistorico() {
+        localStorage.setItem('oficina_placas_historico', JSON.stringify(placaHistorico));
+    }
+
+    function updateModelosDatalist() {
+        const modelosUnicos = [...new Set(vehicles.map(v => v.modelo).filter(Boolean))];
+        modelosConhecidos.innerHTML = modelosUnicos.map(m => `<option value="${escapeHtml(m)}">`).join('');
+    }
+
     function openModalForNew() {
         editingId = null;
         modalTitle.textContent = '➕ NOVO VEÍCULO';
         btnSubmit.textContent = 'ADICIONAR';
+        inputPlaca.value = '';
         inputModelo.value = '';
+        inputMecanico.value = '';
         inputStatus.value = 'diagnostico';
         inputDefeito.value = '';
+        placaHint.textContent = '';
         modal.classList.add('active');
-        inputModelo.focus();
+        inputPlaca.focus();
     }
 
     function openModalForEdit(id) {
@@ -647,11 +920,14 @@
         editingId = id;
         modalTitle.textContent = '✏️ EDITAR VEÍCULO';
         btnSubmit.textContent = 'SALVAR';
+        inputPlaca.value = vehicle.placa;
         inputModelo.value = vehicle.modelo;
+        inputMecanico.value = vehicle.mecanico;
         inputStatus.value = vehicle.status;
         inputDefeito.value = vehicle.defeito;
+        placaHint.textContent = '';
         modal.classList.add('active');
-        inputModelo.focus();
+        inputPlaca.focus();
     }
 
     function closeModal() {
@@ -662,14 +938,18 @@
     function handleSubmit(e) {
         e.preventDefault();
 
+        const placa = formatPlaca(inputPlaca.value);
+
         const vehicleData = {
+            placa: placa,
             modelo: inputModelo.value.trim(),
+            mecanico: inputMecanico.value,
             status: inputStatus.value,
             defeito: inputDefeito.value.trim()
         };
 
         if (editingId) {
-            vehicles = vehicles.map(v => 
+            vehicles = vehicles.map(v =>
                 v.id === editingId ? { ...vehicleData, id: editingId } : v
             );
         } else {
@@ -679,9 +959,14 @@
             });
         }
 
+        // Atualiza o histórico placa -> modelo/mecânico para autopreenchimento futuro
+        placaHistorico[placa] = { modelo: vehicleData.modelo, mecanico: vehicleData.mecanico };
+        saveHistorico();
+
         saveVehicles();
         renderVehicles();
         updateStats();
+        updateModelosDatalist();
         closeModal();
     }
 
@@ -697,20 +982,26 @@
                 </div>
             `;
             btnCopiar.disabled = true;
+            btnImprimir.disabled = true;
             return;
         }
 
         btnCopiar.disabled = false;
+        btnImprimir.disabled = false;
 
         vehiclesList.innerHTML = vehicles.map(vehicle => `
             <div class="vehicle-card">
                 <div class="vehicle-header">
                     <div class="vehicle-info">
                         <div class="vehicle-title-row">
+                            <span class="vehicle-placa">${escapeHtml(vehicle.placa || '—')}</span>
                             <h3 class="vehicle-modelo">${escapeHtml(vehicle.modelo)}</h3>
                             <span class="vehicle-status status-${vehicle.status}">
-                                ${STATUS_CONFIG[vehicle.status].label}
+                                ${STATUS_CONFIG[vehicle.status].emoji} ${STATUS_CONFIG[vehicle.status].label}
                             </span>
+                        </div>
+                        <div class="vehicle-mecanico-row">
+                            🧑‍🔧 Mecânico: <strong>${escapeHtml(vehicle.mecanico || 'Não definido')}</strong>
                         </div>
                         <div class="vehicle-defeito-box">
                             <span class="vehicle-defeito-label">Defeito/Serviço:</span>
@@ -737,25 +1028,13 @@
     }
 
     function updateStats() {
-        const stats = {
-            diagnostico: 0,
-            servico: 0,
-            peca: 0,
-            espera: 0,
-            pronto: 0
-        };
+        const stats = {};
+        Object.keys(STATUS_CONFIG).forEach(key => stats[key] = 0);
+        vehicles.forEach(v => { if (stats[v.status] !== undefined) stats[v.status]++; });
 
-        vehicles.forEach(v => {
-            stats[v.status]++;
-        });
-
-        const statCards = document.querySelectorAll('.stat-card');
-        const statusKeys = Object.keys(STATUS_CONFIG);
-        
-        statCards.forEach((card, index) => {
-            const statusKey = statusKeys[index];
-            const number = card.querySelector('.stat-number');
-            number.textContent = stats[statusKey];
+        document.querySelectorAll('.stat-card').forEach(card => {
+            const key = card.dataset.status;
+            card.querySelector('.stat-number').textContent = stats[key];
         });
 
         totalCount.textContent = vehicles.length;
@@ -768,6 +1047,16 @@
         saveVehicles();
         renderVehicles();
         updateStats();
+        updateModelosDatalist();
+    }
+
+    function agruparPorStatus() {
+        const grouped = {};
+        vehicles.forEach(v => {
+            if (!grouped[v.status]) grouped[v.status] = [];
+            grouped[v.status].push(v);
+        });
+        return grouped;
     }
 
     function copyToWhatsApp() {
@@ -776,13 +1065,7 @@
             return;
         }
 
-        const grouped = {};
-        vehicles.forEach(v => {
-            if (!grouped[v.status]) {
-                grouped[v.status] = [];
-            }
-            grouped[v.status].push(v);
-        });
+        const grouped = agruparPorStatus();
 
         let text = '🚗 *VEÍCULOS NA OFICINA*\n';
         text += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
@@ -793,12 +1076,13 @@
             if (grouped[statusKey] && grouped[statusKey].length > 0) {
                 const config = STATUS_CONFIG[statusKey];
                 text += `${config.emoji} *${config.label.toUpperCase()}* (${grouped[statusKey].length})\n`;
-                
+
                 grouped[statusKey].forEach((v, i) => {
-                    text += `${i + 1}. ${v.modelo}\n`;
+                    text += `${i + 1}. ${v.placa ? '[' + v.placa + '] ' : ''}${v.modelo}\n`;
+                    text += `   Mecânico: ${v.mecanico || '-'}\n`;
                     text += `   ${v.defeito}\n\n`;
                 });
-                
+
                 text += '\n';
             }
         });
@@ -806,7 +1090,7 @@
         navigator.clipboard.writeText(text).then(() => {
             btnCopiarTexto.textContent = 'COPIADO!';
             btnCopiar.classList.add('copied');
-            
+
             setTimeout(() => {
                 btnCopiarTexto.textContent = 'COPIAR P/ WHATSAPP';
                 btnCopiar.classList.remove('copied');
@@ -817,6 +1101,48 @@
         });
     }
 
+    function imprimirLista(colunas) {
+        if (vehicles.length === 0) {
+            alert('Nenhum veículo para imprimir!');
+            return;
+        }
+
+        const grouped = agruparPorStatus();
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        let html = `
+            <div class="print-title">🚗 Veículos na Oficina</div>
+            <div class="print-subtitle">${hoje} — Total: ${vehicles.length} veículo(s)</div>
+        `;
+
+        Object.keys(STATUS_CONFIG).forEach(statusKey => {
+            const lista = grouped[statusKey];
+            if (!lista || lista.length === 0) return;
+            const config = STATUS_CONFIG[statusKey];
+
+            html += `<div class="print-group-title">${config.emoji} ${config.label} (${lista.length})</div>`;
+
+            lista.forEach(v => {
+                html += `
+                    <div class="print-item">
+                        <div class="pi-top">${escapeHtml(v.placa || '—')} — ${escapeHtml(v.modelo)}</div>
+                        <div class="pi-meta">Mecânico: ${escapeHtml(v.mecanico || '-')}</div>
+                        <div class="pi-defeito">${escapeHtml(v.defeito)}</div>
+                    </div>
+                `;
+            });
+        });
+
+        printArea.innerHTML = html;
+        printArea.classList.remove('cols-2', 'cols-3');
+        printArea.classList.add('cols-' + colunas);
+
+        printModal.classList.remove('active');
+        document.body.classList.add('printing');
+
+        setTimeout(() => window.print(), 100);
+    }
+
     function escapeHtml(text) {
         const map = {
             '&': '&amp;',
@@ -825,13 +1151,12 @@
             '"': '&quot;',
             "'": '&#039;'
         };
-        return text.replace(/[&<>"']/g, m => map[m]);
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     window.openModalForEdit = openModalForEdit;
     window.deleteVehicle = deleteVehicle;
 </script>
-```
 
 </body>
 </html>
