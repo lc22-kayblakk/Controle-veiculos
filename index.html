@@ -587,43 +587,38 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        /*
-         * A lista usa exatamente duas colunas.
-         * column-fill:auto faz a leitura natural:
-         * termina o espaço disponível da coluna esquerda
-         * e somente então continua na coluna direita.
-         */
         .print-area {
             width: 100%;
-            height: 283mm;
-            padding: 0;
             margin: 0;
-            column-count: 2;
-            column-gap: 9mm;
-            column-fill: auto;
-            font-size: 14px;
-            line-height: 1.18;
-            overflow: visible;
+            padding: 0;
         }
 
-        .print-area.cols-2,
-        .print-area.cols-3 {
-            column-count: 2;
+        /* Duas colunas REAIS, em vez do sistema automático de colunas do navegador. */
+        .print-columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            column-gap: 9mm;
+            width: 100%;
+            height: 270mm;
+        }
+
+        .print-column {
+            height: 270mm;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .print-title {
             font-size: 18px;
             line-height: 1.1;
             font-weight: bold;
-            margin: 0 0 2mm 0;
-            column-span: all;
+            margin: 0 0 1mm 0;
         }
 
         .print-subtitle {
             font-size: 11px;
             color: #333;
             margin: 0 0 3mm 0;
-            column-span: all;
         }
 
         .print-group-title {
@@ -634,8 +629,6 @@
             margin: 3mm 0 1.5mm 0;
             border-bottom: 1px solid #000;
             padding-bottom: 1mm;
-            break-after: avoid;
-            page-break-after: avoid;
         }
 
         .print-item {
@@ -1158,56 +1151,112 @@
         const grouped = agruparPorStatus();
         const hoje = new Date().toLocaleDateString('pt-BR');
 
-        let html = `
-            <div class="print-title">🚗 Veículos na Oficina</div>
-            <div class="print-subtitle">${hoje} — Total: ${vehicles.length} veículo(s)</div>
-        `;
+        /*
+         * Monta unidades individuais e depois distribui:
+         * 1) preenche a coluna ESQUERDA de cima para baixo;
+         * 2) quando ela atingir o limite da folha, continua na DIREITA.
+         *
+         * Isso evita o "balanceamento" automático do CSS multicolumn
+         * que estava causando o comportamento visto na foto.
+         */
+        const grupos = [];
 
         Object.keys(STATUS_CONFIG).forEach(statusKey => {
             const lista = grouped[statusKey];
             if (!lista || lista.length === 0) return;
+
             const config = STATUS_CONFIG[statusKey];
 
-            html += `<div class="print-group-title">${config.emoji} ${config.label} (${lista.length})</div>`;
-
-            lista.forEach(v => {
-                html += `
-                    <div class="print-item">
-                        <div class="pi-top">${escapeHtml(v.placa || '—')} — ${escapeHtml(v.modelo)}</div>
-                        <div class="pi-meta">Mecânico: ${escapeHtml(v.mecanico || '-')}</div>
-                        <div class="pi-defeito">${escapeHtml(v.defeito)}</div>
-                    </div>
-                `;
+            lista.forEach((v, index) => {
+                grupos.push({
+                    tipo: index === 0 ? 'grupo' : 'item',
+                    html: index === 0
+                        ? `
+                            <div class="print-group-title">${config.emoji} ${config.label} (${lista.length})</div>
+                            <div class="print-item">
+                                <div class="pi-top">${escapeHtml(v.placa || '—')} — ${escapeHtml(v.modelo)}</div>
+                                <div class="pi-meta">Mecânico: ${escapeHtml(v.mecanico || '-')}</div>
+                                <div class="pi-defeito">${escapeHtml(v.defeito)}</div>
+                            </div>
+                          `
+                        : `
+                            <div class="print-item">
+                                <div class="pi-top">${escapeHtml(v.placa || '—')} — ${escapeHtml(v.modelo)}</div>
+                                <div class="pi-meta">Mecânico: ${escapeHtml(v.mecanico || '-')}</div>
+                                <div class="pi-defeito">${escapeHtml(v.defeito)}</div>
+                            </div>
+                          `
+                });
             });
         });
 
-        printArea.innerHTML = html;
-        printArea.classList.remove('cols-2', 'cols-3');
-        printArea.classList.add('cols-2');
+        printArea.innerHTML = `
+            <div class="print-title">🚗 Veículos na Oficina</div>
+            <div class="print-subtitle">${hoje} — Total: ${vehicles.length} veículo(s)</div>
+            <div class="print-columns">
+                <div class="print-column" id="printColumnLeft"></div>
+                <div class="print-column" id="printColumnRight"></div>
+            </div>
+        `;
 
         printModal.classList.remove('active');
         document.body.classList.add('printing');
 
-        /*
-         * Começa com fonte de 14px, como solicitado.
-         * Se a lista for grande demais para duas colunas A4,
-         * reduz somente o necessário para evitar uma terceira coluna/página.
-         */
         setTimeout(() => {
+            const left = document.getElementById('printColumnLeft');
+            const right = document.getElementById('printColumnRight');
+
+            /*
+             * Começa em 14px.
+             * A cada tentativa reconstruímos as duas colunas para que
+             * a redução de fonte não altere a ordem dos veículos.
+             */
             let tamanho = 14;
-            printArea.style.fontSize = tamanho + 'px';
 
-            // Aguarda o navegador calcular as colunas.
-            requestAnimationFrame(() => {
-                while (tamanho > 9 && printArea.scrollWidth > printArea.clientWidth + 2) {
-                    tamanho -= 0.5;
-                    printArea.style.fontSize = tamanho + 'px';
-                }
+            function distribuir() {
+                left.innerHTML = '';
+                right.innerHTML = '';
 
-                window.print();
-            });
-        }, 150);
+                let colunaAtual = left;
+
+                grupos.forEach((grupo) => {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = grupo.html.trim();
+                    const nodes = Array.from(temp.children);
+
+                    // Se o próximo bloco não couber na esquerda,
+                    // continua na direita.
+                    nodes.forEach(node => {
+                        colunaAtual.appendChild(node);
+
+                        if (colunaAtual === left &&
+                            left.scrollHeight > left.clientHeight + 1) {
+                            left.removeChild(node);
+                            colunaAtual = right;
+                            colunaAtual.appendChild(node);
+                        }
+                    });
+                });
+            }
+
+            function cabeNasDuasColunas() {
+                return left.scrollHeight <= left.clientHeight + 1 &&
+                       right.scrollHeight <= right.clientHeight + 1;
+            }
+
+            while (tamanho >= 9) {
+                printArea.style.fontSize = tamanho + 'px';
+                distribuir();
+
+                if (cabeNasDuasColunas()) break;
+
+                tamanho -= 0.5;
+            }
+
+            window.print();
+        }, 200);
     }
+
 
     function escapeHtml(text) {
         const map = {
