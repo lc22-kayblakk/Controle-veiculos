@@ -561,67 +561,106 @@
 
     /* ===================== IMPRESSÃO ===================== */
     @media print {
+        @page {
+            size: A4 portrait;
+            margin: 7mm;
+        }
+
+        html, body {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
         body.printing > *:not(.print-area) {
             display: none !important;
         }
+
         body.printing .print-area {
             display: block !important;
         }
+
         body {
-            background: white !important;
-            color: black !important;
+            background: #fff !important;
+            color: #000 !important;
+            font-family: Arial, Helvetica, sans-serif;
         }
+
         .print-area {
+            width: 100%;
             padding: 0;
-            column-gap: 22px;
+            margin: 0;
+            column-gap: 8mm;
+            column-fill: balance;
+            font-size: 8.2pt;
+            line-height: 1.15;
         }
-        .print-area.cols-2 { column-count: 2; }
-        .print-area.cols-3 { column-count: 3; }
+
+        .print-area.cols-2,
+        .print-area.cols-3 {
+            column-count: 2;
+        }
+
         .print-title {
-            font-size: 16px;
+            font-size: 13pt;
+            line-height: 1.1;
             font-weight: bold;
-            margin-bottom: 2px;
+            margin: 0 0 1mm 0;
             column-span: all;
         }
+
         .print-subtitle {
-            font-size: 11px;
-            color: #444;
-            margin-bottom: 12px;
+            font-size: 7.5pt;
+            color: #333;
+            margin: 0 0 3mm 0;
             column-span: all;
         }
+
         .print-group-title {
-            font-size: 12.5px;
+            font-size: 8.5pt;
+            line-height: 1.1;
             font-weight: bold;
             text-transform: uppercase;
-            margin: 10px 0 4px 0;
-            border-bottom: 1.5px solid #000;
-            padding-bottom: 2px;
+            margin: 2.5mm 0 1mm 0;
+            border-bottom: 1px solid #000;
+            padding-bottom: 1mm;
             break-after: avoid;
+            page-break-after: avoid;
         }
+
         .print-item {
             break-inside: avoid;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px dotted #999;
-            font-size: 11.5px;
-            line-height: 1.35;
-            color: #000;
+            page-break-inside: avoid;
+            margin-bottom: 1.8mm;
+            padding-bottom: 1.3mm;
+            border-bottom: 0.5px solid #bbb;
         }
-        .print-item .pi-top {
+
+        .pi-top {
+            font-size: 8.5pt;
+            line-height: 1.1;
             font-weight: bold;
-            font-size: 12.5px;
+            margin-bottom: 0.5mm;
         }
-        .print-item .pi-meta {
+
+        .pi-meta,
+        .pi-defeito {
+            font-size: 7.2pt;
+            line-height: 1.15;
+        }
+
+        .pi-meta {
             color: #333;
-            font-size: 11px;
+            margin-bottom: 0.5mm;
         }
-        .print-item .pi-defeito {
-            margin-top: 2px;
-        }
-        @page {
-            margin: 12mm;
+
+        .pi-defeito {
+            color: #111;
+            overflow-wrap: anywhere;
         }
     }
+
 </style>
 </head>
 <body>
@@ -747,7 +786,7 @@
                 <h2>🖨️ Imprimir Lista</h2>
             </div>
             <div class="modal-body">
-                <p style="margin-bottom: 1.25rem; color: #ccc;">Quantas colunas na folha?</p>
+                <p style="margin-bottom: 1.25rem; color: #ccc;">Como deseja organizar a lista?</p>
                 <div class="print-columns-choice">
                     <button class="print-col-btn" id="btnPrint2">2 Colunas</button>
                     <button class="print-col-btn" id="btnPrint3">3 Colunas</button>
